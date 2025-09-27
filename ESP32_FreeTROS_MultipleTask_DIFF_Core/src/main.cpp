@@ -18,6 +18,16 @@ void setup()
 {
   Serial.begin(115200);
 
+  sistemi_baslat();
+}
+
+void loop() {
+ 
+}
+
+
+void sistemi_baslat(void)
+{
   xTaskCreatePinnedToCore(
     Gorev1,             // Gorev Fonksiyonu
     "Task1",           // Görev adı
@@ -37,16 +47,6 @@ void setup()
     &Gorev2Handle,     // görev handle
     0                 // Çekirdek 0
   );
-}
-
-void loop() {
- 
-}
-
-
-void sistemi_baslat(void)
-{
-  
 }
 
 /**************************************Gorev fonksiyonlarının tanımlanması********************************** */
