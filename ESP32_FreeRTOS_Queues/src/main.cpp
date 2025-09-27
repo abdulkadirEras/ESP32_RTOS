@@ -9,22 +9,27 @@
 // Kuyruk için handle oluşturuldu
 QueueHandle_t potQueue = NULL;
 
-void potTask(void *parameter) {
-  for (;;) {
+void potGorev(void *parameter) 
+{
+  for (;;) 
+  {
     uint16_t potDeger = analogRead(POT_Pin);  // okuma aralığı 0–4095
     xQueueSend(potQueue, &potDeger, portMAX_DELAY);  // kuyruğa gönder
-    Serial.printf("potTask: Sent pot value %u\n", potDeger);
+    Serial.printf("potGorev: gonderilen pot degeri: %u\n", potDeger);
     vTaskDelay(100 / portTICK_PERIOD_MS);  // 100ms
   }
 }
 
-void LEDBrightnessTask(void *parameter) {
-  for (;;) {
+void LEDParlaklikGorev(void *parametre) 
+{
+  for (;;) 
+  {
     uint16_t potValue;
-    if (xQueueReceive(potQueue, &potValue, portMAX_DELAY)) {
-      uint16_t brightness = potValue;
-      ledcWrite(LED_Pin, brightness);
-      Serial.printf("LEDBrightnessTask: Set brightness %u\n", brightness);
+    if (xQueueReceive(potQueue, &potValue, portMAX_DELAY)) 
+    {
+      uint16_t parlaklik = potValue;
+      ledcWrite(LED_Pin, parlaklik);
+      Serial.printf("LEDParlaklikGorev: Ayarlanan parlaklik: %u\n", parlaklik);
     }
   }
 }
@@ -32,30 +37,31 @@ void LEDBrightnessTask(void *parameter) {
 void setup() {
   Serial.begin(115200);
 
-  // Setup PWM for LED
+  // LED için PWM başlat
   ledcAttach(LED_Pin, PWM_FREK, PWM_COZUNURLUK);
 
-  // Create queue (5 items, each uint16_t)
+  // Kuyruk oluştur (5 parça, each uint16_t)
   potQueue = xQueueCreate(QUEUE_BOYUT, sizeof(uint16_t));
-  if (potQueue == NULL) {
-    Serial.println("Failed to create queue!");
+  if (potQueue == NULL) 
+  {
+    Serial.println("Kuyruk olusturulamadi!");
     while (1);
   }
 
-  // Create tasks
+  // Gorevleri oluştur
   xTaskCreatePinnedToCore(
-    potTask,
-    "potTask",
-    3000,  // Task stack
+    potGorev,
+    "potGorev",
+    3000,  // Görev yığını
     NULL,
     1,
     NULL,
-    1  // Core 1
+    1  // Çekirdek 1
   );
 
   xTaskCreatePinnedToCore(
-    LEDBrightnessTask,
-    "LEDBrightnessTask",
+    LEDParlaklikGorev,
+    "LEDParlaklikGorev",
     3000,
     NULL,
     1,
@@ -65,5 +71,5 @@ void setup() {
 }
 
 void loop() {
-  // Empty
+  
 }
