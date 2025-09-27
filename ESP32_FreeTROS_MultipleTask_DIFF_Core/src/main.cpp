@@ -56,14 +56,17 @@ void Gorev1(void *parameter)
   pinMode(LED1_Pin, OUTPUT);
   for (;;) 
   {
+    Serial.println("********************** GOREV 1 **********************");
     digitalWrite(LED1_Pin, HIGH);
     Serial.println("Gorev1: LED1 ON");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     digitalWrite(LED1_Pin, LOW);
     Serial.println("Gorev1: LED1 OFF");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
+
     Serial.print("Gorev 1 calistigi cekirdek: ");
     Serial.println(xPortGetCoreID());
+    Serial.printf("Gorev1 Stack Bos Alan: %u bytes\n", uxTaskGetStackHighWaterMark(NULL));
   }
 }
 
@@ -72,13 +75,17 @@ void Gorev2(void *parameter)
   pinMode(LED2_Pin, OUTPUT);
   for (;;) 
   {
+    Serial.println("********************** GOREV 2 **********************");
     digitalWrite(LED2_Pin, HIGH);
     Serial.println("Gorev2: LED2 ON");
     vTaskDelay(333 / portTICK_PERIOD_MS);
     digitalWrite(LED2_Pin, LOW);
     Serial.println("Gorev2: LED2 OFF");
     vTaskDelay(333 / portTICK_PERIOD_MS);
+    
     Serial.print("Gorev 2 calistigi cekirdek: ");
     Serial.println(xPortGetCoreID());
+
+    Serial.printf("Gorev2 Stack Bos Alan: %u bytes\n", uxTaskGetStackHighWaterMark(NULL));
   }
 }
