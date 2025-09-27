@@ -3,8 +3,53 @@
 #define LED1_Pin 2
 #define LED2_Pin 4
 
+
+//gorev handle'lari oluşturuldu
 TaskHandle_t Gorev1Handle = NULL;
 TaskHandle_t Gorev2Handle = NULL;
+
+
+//fonksiyon prototipleri
+void Gorev1(void *parameter);
+void Gorev2(void *parameter);
+void sistemi_baslat(void);
+
+void setup() 
+{
+  Serial.begin(115200);
+
+  xTaskCreatePinnedToCore(
+    Gorev1,             // Gorev Fonksiyonu
+    "Task1",           // Görev adı
+    10000,             // Yığın Boyutu (bytes)
+    NULL,              // Parametreler 
+    1,                 // Öncelik
+    &Gorev1Handle,      // Gorev handle
+    1                  // Çekirdek 1
+  );
+
+  xTaskCreatePinnedToCore(
+    Gorev2,            // Gorev Fonksiyonu
+    "Task2",          // Gore v adı
+    10000,            // Yığın Boyutu (bytes)
+    NULL,             // Parametreler     
+    1,                // Öncelik
+    &Gorev2Handle,     // görev handle
+    0                 // Çekirdek 0
+  );
+}
+
+void loop() {
+ 
+}
+
+
+void sistemi_baslat(void)
+{
+  
+}
+
+/**************************************Gorev fonksiyonlarının tanımlanması********************************** */
 
 void Gorev1(void *parameter) 
 {
@@ -36,33 +81,4 @@ void Gorev2(void *parameter)
     Serial.print("Gorev 2 calistigi cekirdek: ");
     Serial.println(xPortGetCoreID());
   }
-}
-
-void setup() 
-{
-  Serial.begin(115200);
-
-  xTaskCreatePinnedToCore(
-    Gorev1,             // Gorev Fonksiyonu
-    "Task1",           // Görev adı
-    10000,             // Yığın Boyutu (bytes)
-    NULL,              // Parametreler 
-    1,                 // Öncelik
-    &Gorev1Handle,      // Gorev handle
-    1                  // Çekirdek 1
-  );
-
-  xTaskCreatePinnedToCore(
-    Gorev2,            // Gorev Fonksiyonu
-    "Task2",          // Gore v adı
-    10000,            // Yığın Boyutu (bytes)
-    NULL,             // Parametreler     
-    1,                // Öncelik
-    &Gorev2Handle,     // görev handle
-    0                 // Çekirdek 0
-  );
-}
-
-void loop() {
- 
 }
