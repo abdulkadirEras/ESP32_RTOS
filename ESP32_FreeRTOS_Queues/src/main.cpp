@@ -11,9 +11,9 @@ QueueHandle_t potQueue = NULL;
 
 void potTask(void *parameter) {
   for (;;) {
-    uint16_t potValue = analogRead(POT_Pin);  // Read 0–4095
-    xQueueSend(potQueue, &potValue, portMAX_DELAY);  // Send to queue
-    Serial.printf("potTask: Sent pot value %u\n", potValue);
+    uint16_t potDeger = analogRead(POT_Pin);  // okuma aralığı 0–4095
+    xQueueSend(potQueue, &potDeger, portMAX_DELAY);  // kuyruğa gönder
+    Serial.printf("potTask: Sent pot value %u\n", potDeger);
     vTaskDelay(100 / portTICK_PERIOD_MS);  // 100ms
   }
 }
