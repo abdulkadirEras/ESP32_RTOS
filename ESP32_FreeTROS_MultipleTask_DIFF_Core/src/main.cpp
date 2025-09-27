@@ -3,6 +3,7 @@
 #define LED1_Pin 2
 #define LED2_Pin 4
 
+static uint32_t sonKontol = 0;
 
 //gorev handle'lari oluşturuldu
 TaskHandle_t Gorev1Handle = NULL;
@@ -21,8 +22,15 @@ void setup()
   sistemi_baslat();
 }
 
-void loop() {
- 
+void loop() 
+{
+   
+  if (millis() - sonKontol > 5000) 
+  {
+    Serial.println("********************** LOOP **********************");
+    Serial.printf("Mevcut bos bellek: %u bytes\n", xPortGetFreeHeapSize());
+    sonKontol = millis();
+  }
 }
 
 
