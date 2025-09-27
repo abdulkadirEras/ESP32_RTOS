@@ -6,58 +6,63 @@
 TaskHandle_t Gorev1Handle = NULL;
 TaskHandle_t Gorev2Handle = NULL;
 
-void Task1(void *parameter) {
+void Gorev1(void *parameter) 
+{
   pinMode(LED1_Pin, OUTPUT);
-  for (;;) {
+  for (;;) 
+  {
     digitalWrite(LED1_Pin, HIGH);
-    Serial.println("Task1: LED1 ON");
+    Serial.println("Gorev1: LED1 ON");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
     digitalWrite(LED1_Pin, LOW);
-    Serial.println("Task1: LED1 OFF");
+    Serial.println("Gorev1: LED1 OFF");
     vTaskDelay(1000 / portTICK_PERIOD_MS);
-    Serial.print("Task 1 running on core ");
+    Serial.print("Gorev 1 calistigi cekirdek: ");
     Serial.println(xPortGetCoreID());
   }
 }
 
-void Task2(void *parameter) {
+void Gorev2(void *parameter) 
+{
   pinMode(LED2_Pin, OUTPUT);
-  for (;;) {
+  for (;;) 
+  {
     digitalWrite(LED2_Pin, HIGH);
-    Serial.println("Task2: LED2 ON");
+    Serial.println("Gorev2: LED2 ON");
     vTaskDelay(333 / portTICK_PERIOD_MS);
     digitalWrite(LED2_Pin, LOW);
-    Serial.println("Task2: LED2 OFF");
+    Serial.println("Gorev2: LED2 OFF");
     vTaskDelay(333 / portTICK_PERIOD_MS);
-    Serial.print("Task 2 running on core ");
+    Serial.print("Gorev 2 calistigi cekirdek: ");
     Serial.println(xPortGetCoreID());
   }
 }
 
-void setup() {
+void setup() 
+{
   Serial.begin(115200);
 
   xTaskCreatePinnedToCore(
-    Task1,             // Task function
-    "Task1",           // Task name
-    10000,             // Stack size (bytes)
-    NULL,              // Parameters
-    1,                 // Priority
-    &Gorev1Handle,      // Task handle
-    1                  // Core 1
+    Gorev1,             // Gorev Fonksiyonu
+    "Task1",           // Görev adı
+    10000,             // Yığın Boyutu (bytes)
+    NULL,              // Parametreler 
+    1,                 // Öncelik
+    &Gorev1Handle,      // Gorev handle
+    1                  // Çekirdek 1
   );
 
   xTaskCreatePinnedToCore(
-    Task2,            // Task function
-    "Task2",          // Task name
-    10000,            // Stack size (bytes)
-    NULL,             // Parameters     
-    1,                // Priority
-    &Gorev2Handle,     // Task handle
-    0                 // Core 0
+    Gorev2,            // Gorev Fonksiyonu
+    "Task2",          // Gore v adı
+    10000,            // Yığın Boyutu (bytes)
+    NULL,             // Parametreler     
+    1,                // Öncelik
+    &Gorev2Handle,     // görev handle
+    0                 // Çekirdek 0
   );
 }
 
 void loop() {
-  // Empty because FreeRTOS scheduler runs the task
+ 
 }
