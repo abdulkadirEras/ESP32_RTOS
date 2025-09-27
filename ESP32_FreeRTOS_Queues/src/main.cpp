@@ -9,33 +9,55 @@
 // Kuyruk için handle oluşturuldu
 QueueHandle_t potQueue = NULL;
 
-void potGorev(void *parameter) 
+
+//Fonksiyon Prototipleri
+void sistemi_baslat(void);
+void potGorev(void *parameter) ;
+void LEDParlaklikGorev(void *parametre) ;
+void gorevleri_olustur(void);
+void setup() 
 {
-  for (;;) 
-  {
-    uint16_t potDeger = analogRead(POT_Pin);  // okuma aralığı 0–4095
-    xQueueSend(potQueue, &potDeger, portMAX_DELAY);  // kuyruğa gönder
-    Serial.printf("potGorev: gonderilen pot degeri: %u\n", potDeger);
-    vTaskDelay(100 / portTICK_PERIOD_MS);  // 100ms
-  }
+  sistemi_baslat();
 }
 
-void LEDParlaklikGorev(void *parametre) 
+void loop() 
 {
-  for (;;) 
-  {
-    uint16_t potValue;
-    if (xQueueReceive(potQueue, &potValue, portMAX_DELAY)) 
-    {
-      uint16_t parlaklik = potValue;
-      ledcWrite(LED_Pin, parlaklik);
-      Serial.printf("LEDParlaklikGorev: Ayarlanan parlaklik: %u\n", parlaklik);
-    }
-  }
+  
 }
 
-void setup() {
-  Serial.begin(115200);
+
+void gorevleri_olustur(void)
+{
+  // Gorevleri oluştur
+
+  //Pot gorevi
+  xTaskCreatePinnedToCore(
+    potGorev,
+    "potGorev",
+    3000,  // Görev yığını
+    NULL,
+    1,
+    NULL,
+    1  // Çekirdek 1
+  );
+
+
+  //LED parlaklık gorevi
+  xTaskCreatePinnedToCore(
+    LEDParlaklikGorev,
+    "LEDParlaklikGorev",
+    3000,
+    NULL,
+    1,
+    NULL,
+    1
+  );
+}
+
+
+void sistemi_baslat(void)
+{
+  Serial.begin(9600);
 
   // LED için PWM başlat
   ledcAttach(LED_Pin, PWM_FREK, PWM_COZUNURLUK);
@@ -48,28 +70,30 @@ void setup() {
     while (1);
   }
 
-  // Gorevleri oluştur
-  xTaskCreatePinnedToCore(
-    potGorev,
-    "potGorev",
-    3000,  // Görev yığını
-    NULL,
-    1,
-    NULL,
-    1  // Çekirdek 1
-  );
-
-  xTaskCreatePinnedToCore(
-    LEDParlaklikGorev,
-    "LEDParlaklikGorev",
-    3000,
-    NULL,
-    1,
-    NULL,
-    1
-  );
+  gorevleri_olustur();
 }
 
-void loop() {
-  
+//*******************************************Oluşturulan görevler*******************************************
+void potGorev(void *parameter) 
+{
+  for (;;) 
+  {
+    uint16_t potDeger = analogRead(POT_Pin);  // okuma aralığı 0–4095
+    xQueueSend(potQueue, &potDeger, portMAX_DELAY);  // kuyruğa gönder
+    Serial.printf("potGorev: gonderilen pot degeri: %u\n", potDeger);
+    vTaskDelay(100 / portTICK_PERIOD_MS);  // 100ms
+  }
+}
+void LEDParlaklikGorev(void *parametre) 
+{
+  for (;;) 
+  {
+    uint16_t potValue;
+    if (xQueueReceive(potQueue, &potValue, portMAX_DELAY)) 
+    {
+      uint16_t parlaklik = potValue;
+      ledcWrite(LED_Pin, parlaklik);
+      Serial.printf("LEDParlaklikGorev: Ayarlanan parlaklik: %u\n", parlaklik);
+    }
+  }
 }
