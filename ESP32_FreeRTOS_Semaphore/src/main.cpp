@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 
-// Use only core 1 for demo purposes
+// Demo amaçlı sadece çekirdek 1 üzerinde çalışır
 #if CONFIG_FREERTOS_UNICORE
   static const BaseType_t app_cpu = 0;
 #else
@@ -53,16 +53,17 @@ void producer(void *parameters)
     xSemaphoreGive(sem_filled);
   }
 
-  // Delete self task
+  // Kendi kendini sil
   vTaskDelete(NULL);
 }
 
 // Consumer: continuously read from shared buffer
-void consumer(void *parameters) {
+void consumer(void *parameters) 
+{
 
   int val;
 
-  // Read from buffer
+  // Bufferdan sürekli okuma
   while (1) {
 
     // Wait for at least one slot in buffer to be filled
@@ -83,7 +84,8 @@ void consumer(void *parameters) {
 //*****************************************************************************
 // Main (runs as its own task with priority 1 on core 1)
 
-void setup() {
+void setup() 
+{
 
   char task_name[12];
   
@@ -133,6 +135,5 @@ void setup() {
 
 void loop() 
 {
-
   vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
