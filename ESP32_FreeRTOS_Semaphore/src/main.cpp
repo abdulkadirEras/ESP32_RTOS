@@ -9,13 +9,13 @@
 #endif
 
 // Ayarlamalar
-enum {BUF_SIZE = 5};                  // Paylaşılan buffer boyutu
-static const int num_prod_tasks = 5;  // Üretici görevlerinin sayısı
-static const int num_cons_tasks = 2;  // Tüketici görevlerinin sayısı
+enum {BUF_BOYUT = 5};                  // Paylaşılan buffer boyutu
+static const int num_prod_gorevler = 5;  // Producer görevlerinin sayısı
+static const int num_cons_gorevler = 2;  // Consumer görevlerinin sayısı
 static const int num_writes = 3;      // Her yapımcı buf'a yazıyor
 
 // Global değişkenler
-static int buf[BUF_SIZE];             // Paylaşılan buffer
+static int buf[BUF_BOYUT];             // Paylaşılan buffer
 static int head = 0;                  // Buffer'ın indeksine yazma
 static int tail = 0;                  // Buffer'ın indeksinden okuma
 static SemaphoreHandle_t bin_sem;     // Okunabilecek parametreleri okumak için ikili semafor
@@ -46,7 +46,7 @@ void producer(void *parameters)
     // Kritik bölümü muteks ile kilitle
     xSemaphoreTake(mutex, portMAX_DELAY);
     buf[head] = num;
-    head = (head + 1) % BUF_SIZE;
+    head = (head + 1) % BUF_BOYUT;
     xSemaphoreGive(mutex);
 
     // Signal to consumer tasks that a slot in the buffer has been filled
@@ -64,7 +64,8 @@ void consumer(void *parameters)
   int val;
 
   // Bufferdan sürekli okuma
-  while (1) {
+  while (1) 
+  {
 
     // Wait for at least one slot in buffer to be filled
     xSemaphoreTake(sem_filled, portMAX_DELAY);
@@ -72,7 +73,7 @@ void consumer(void *parameters)
     // Lock critical section with a mutex
     xSemaphoreTake(mutex, portMAX_DELAY);
     val = buf[tail];
-    tail = (tail + 1) % BUF_SIZE;
+    tail = (tail + 1) % BUF_BOYUT;
     Serial.println(val);
     xSemaphoreGive(mutex);
 
@@ -99,11 +100,12 @@ void setup()
   //Taskları oluşturmadan önce semaforları ve mutex'i oluştur
   bin_sem = xSemaphoreCreateBinary();
   mutex = xSemaphoreCreateMutex();
-  sem_empty = xSemaphoreCreateCounting(BUF_SIZE, BUF_SIZE);
-  sem_filled = xSemaphoreCreateCounting(BUF_SIZE, 0);
+  sem_empty = xSemaphoreCreateCounting(BUF_BOYUT, BUF_BOYUT);
+  sem_filled = xSemaphoreCreateCounting(BUF_BOYUT, 0);
 
   // Producer görevini başlat (her birinin argüman okumasını beklenir)
-  for (int i = 0; i < num_prod_tasks; i++) {
+  for (int i = 0; i < num_prod_gorevler; i++) 
+  {
     sprintf(task_name, "Producer %i", i);
     xTaskCreatePinnedToCore(producer,
                             task_name,
@@ -116,7 +118,8 @@ void setup()
   }
 
   // consumer görevini başlat
-  for (int i = 0; i < num_cons_tasks; i++) {
+  for (int i = 0; i < num_cons_gorevler; i++) 
+  {
     sprintf(task_name, "Consumer %i", i);
     xTaskCreatePinnedToCore(consumer,
                             task_name,
@@ -130,7 +133,7 @@ void setup()
   // Tüm görevlerin oluşturulduğunu bildirin (Mutex ile Serial Kilitle)
   xSemaphoreTake(mutex, portMAX_DELAY);
   Serial.println("tum gorevler olusturuldu.");
-  xSemaphoreGive(mutex);
+  xSemaphoreGive(mutex);// semaforu serbest bırak
 }
 
 void loop() 
