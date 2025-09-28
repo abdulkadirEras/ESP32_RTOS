@@ -8,7 +8,7 @@
   static const BaseType_t app_cpu = 1;
 #endif
 
-// Ayarlamalar
+// Ayarlamalar ve sabitler
 enum {BUF_BOYUT = 5};                  // Paylaşılan buffer boyutu
 static const int num_prod_gorevler = 5;  // Producer görevlerinin sayısı
 static const int num_cons_gorevler = 2;  // Consumer görevlerinin sayısı
