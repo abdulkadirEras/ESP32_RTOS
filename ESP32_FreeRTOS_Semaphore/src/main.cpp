@@ -1,18 +1,138 @@
 #include <Arduino.h>
 
-// put function declarations here:
-int myFunction(int, int);
+
+// Use only core 1 for demo purposes
+#if CONFIG_FREERTOS_UNICORE
+  static const BaseType_t app_cpu = 0;
+#else
+  static const BaseType_t app_cpu = 1;
+#endif
+
+// Ayarlamalar
+enum {BUF_SIZE = 5};                  // Paylaşılan buffer boyutu
+static const int num_prod_tasks = 5;  // Üretici görevlerinin sayısı
+static const int num_cons_tasks = 2;  // Tüketici görevlerinin sayısı
+static const int num_writes = 3;      // Her yapımcı buf'a yazıyor
+
+// Global değişkenler
+static int buf[BUF_SIZE];             // Paylaşılan buffer
+static int head = 0;                  // Buffer'ın indeksine yazma
+static int tail = 0;                  // Buffer'ın indeksinden okuma
+static SemaphoreHandle_t bin_sem;     // Okunabilecek parametreleri okumak için ikili semafor
+static SemaphoreHandle_t mutex;       // buffer ve serial erişimi için mutex
+static SemaphoreHandle_t sem_empty;   // Boş slot sayısını sayar
+static SemaphoreHandle_t sem_filled;  // Dolu slot sayısını sayar
+
+//*****************************************************************************
+// Tasks
+
+// Producer: Paylaşılan arabelleğe belirli bir kez yazın
+void producer(void *parameters) 
+{
+
+  // Parametreleri yerel bir değişkene kopyalayın
+  int num = *(int *)parameters;
+
+  // İkili semaforu serbest bırakın
+  xSemaphoreGive(bin_sem);
+
+  // Paylaşılan arabelleği görev numarasıyla doldurun
+  for (int i = 0; i < num_writes; i++) {
+
+    // Bufferdaki  boş yuvanın mevcut olmasını bekleyin
+    xSemaphoreTake(sem_empty, portMAX_DELAY);
+
+    // Kritik bölümü muteks ile kilitle
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    buf[head] = num;
+    head = (head + 1) % BUF_SIZE;
+    xSemaphoreGive(mutex);
+
+    // Signal to consumer tasks that a slot in the buffer has been filled
+    xSemaphoreGive(sem_filled);
+  }
+
+  // Delete self task
+  vTaskDelete(NULL);
+}
+
+// Consumer: continuously read from shared buffer
+void consumer(void *parameters) {
+
+  int val;
+
+  // Read from buffer
+  while (1) {
+
+    // Wait for at least one slot in buffer to be filled
+    xSemaphoreTake(sem_filled, portMAX_DELAY);
+
+    // Lock critical section with a mutex
+    xSemaphoreTake(mutex, portMAX_DELAY);
+    val = buf[tail];
+    tail = (tail + 1) % BUF_SIZE;
+    Serial.println(val);
+    xSemaphoreGive(mutex);
+
+    // Signal to producer thread that a slot in the buffer is free
+    xSemaphoreGive(sem_empty);
+  }
+}
+
+//*****************************************************************************
+// Main (runs as its own task with priority 1 on core 1)
 
 void setup() {
-  // put your setup code here, to run once:
-  int result = myFunction(2, 3);
+
+  char task_name[12];
+  
+  // Configure Serial
+  Serial.begin(115200);
+
+  // Wait a moment to start (so we don't miss Serial output)
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
+  Serial.println();
+  Serial.println("---FreeRTOS Semaphore ---");
+
+  // Create mutexes and semaphores before starting tasks
+  bin_sem = xSemaphoreCreateBinary();
+  mutex = xSemaphoreCreateMutex();
+  sem_empty = xSemaphoreCreateCounting(BUF_SIZE, BUF_SIZE);
+  sem_filled = xSemaphoreCreateCounting(BUF_SIZE, 0);
+
+  // Producer görevlerini başlatın (her birinin argüman okumasını bekleyin)
+  for (int i = 0; i < num_prod_tasks; i++) {
+    sprintf(task_name, "Producer %i", i);
+    xTaskCreatePinnedToCore(producer,
+                            task_name,
+                            1024,
+                            (void *)&i,
+                            1,
+                            NULL,
+                            app_cpu);
+    xSemaphoreTake(bin_sem, portMAX_DELAY);
+  }
+
+  // consumer görevlerini başlatın
+  for (int i = 0; i < num_cons_tasks; i++) {
+    sprintf(task_name, "Consumer %i", i);
+    xTaskCreatePinnedToCore(consumer,
+                            task_name,
+                            1024,
+                            NULL,
+                            1,
+                            NULL,
+                            app_cpu);
+  }
+
+  // Tüm görevlerin oluşturulduğunu bildirin (Mutex ile Serial Kilitle)
+  xSemaphoreTake(mutex, portMAX_DELAY);
+  Serial.println("tum gorevler olusturuldu.");
+  xSemaphoreGive(mutex);
 }
 
-void loop() {
-  // put your main code here, to run repeatedly:
-}
+void loop() 
+{
 
-// put function definitions here:
-int myFunction(int x, int y) {
-  return x + y;
+  vTaskDelay(1000 / portTICK_PERIOD_MS);
 }
