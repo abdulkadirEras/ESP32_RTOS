@@ -37,7 +37,8 @@ void producer(void *parameters)
   xSemaphoreGive(bin_sem);
 
   // Paylaşılan arabelleği görev numarasıyla doldurun
-  for (int i = 0; i < num_writes; i++) {
+  for (int i = 0; i < num_writes; i++) 
+  {
 
     // Bufferdaki  boş yuvanın mevcut olmasını bekleyin
     xSemaphoreTake(sem_empty, portMAX_DELAY);
@@ -86,21 +87,20 @@ void setup() {
 
   char task_name[12];
   
-  // Configure Serial
   Serial.begin(115200);
 
-  // Wait a moment to start (so we don't miss Serial output)
+  // başlatmadan önce kısa bir gecikme
   vTaskDelay(1000 / portTICK_PERIOD_MS);
   Serial.println();
   Serial.println("---FreeRTOS Semaphore ---");
 
-  // Create mutexes and semaphores before starting tasks
+  //Taskları oluşturmadan önce semaforları ve mutex'i oluştur
   bin_sem = xSemaphoreCreateBinary();
   mutex = xSemaphoreCreateMutex();
   sem_empty = xSemaphoreCreateCounting(BUF_SIZE, BUF_SIZE);
   sem_filled = xSemaphoreCreateCounting(BUF_SIZE, 0);
 
-  // Producer görevlerini başlatın (her birinin argüman okumasını bekleyin)
+  // Producer görevini başlat (her birinin argüman okumasını beklenir)
   for (int i = 0; i < num_prod_tasks; i++) {
     sprintf(task_name, "Producer %i", i);
     xTaskCreatePinnedToCore(producer,
@@ -113,7 +113,7 @@ void setup() {
     xSemaphoreTake(bin_sem, portMAX_DELAY);
   }
 
-  // consumer görevlerini başlatın
+  // consumer görevini başlat
   for (int i = 0; i < num_cons_tasks; i++) {
     sprintf(task_name, "Consumer %i", i);
     xTaskCreatePinnedToCore(consumer,
