@@ -49,7 +49,7 @@ void producer(void *parameters)
     head = (head + 1) % BUF_BOYUT;
     xSemaphoreGive(mutex);
 
-    // Signal to consumer tasks that a slot in the buffer has been filled
+    // bufferda dolu bir yer olduğunu consumer  görevlerine bildir
     xSemaphoreGive(sem_filled);
   }
 
@@ -57,33 +57,31 @@ void producer(void *parameters)
   vTaskDelete(NULL);
 }
 
-// Consumer: continuously read from shared buffer
+// Consumer: Bufferdan sürekli okuma
 void consumer(void *parameters) 
 {
 
-  int val;
+  int deger;
 
   // Bufferdan sürekli okuma
   while (1) 
   {
 
-    // Wait for at least one slot in buffer to be filled
+    // Bufferda en az bir yerin dolmasını bekle
     xSemaphoreTake(sem_filled, portMAX_DELAY);
 
-    // Lock critical section with a mutex
+    // Kritik bölümü muteks ile kilitle
     xSemaphoreTake(mutex, portMAX_DELAY);
-    val = buf[tail];
+    deger = buf[tail];
     tail = (tail + 1) % BUF_BOYUT;
-    Serial.println(val);
-    xSemaphoreGive(mutex);
+    Serial.println(deger);
+    xSemaphoreGive(mutex);// semaforu serbest bırak
 
-    // Signal to producer thread that a slot in the buffer is free
+    // Producer görevlerine bufferda boş bir yer olduğunu bildir
     xSemaphoreGive(sem_empty);
   }
 }
 
-//*****************************************************************************
-// Main (runs as its own task with priority 1 on core 1)
 
 void setup() 
 {
@@ -95,7 +93,7 @@ void setup()
   // başlatmadan önce kısa bir gecikme
   vTaskDelay(1000 / portTICK_PERIOD_MS);
   Serial.println();
-  Serial.println("---FreeRTOS Semaphore ---");
+  Serial.println("---FreeRTOS Semaphore Ornegi---");
 
   //Taskları oluşturmadan önce semaforları ve mutex'i oluştur
   bin_sem = xSemaphoreCreateBinary();
