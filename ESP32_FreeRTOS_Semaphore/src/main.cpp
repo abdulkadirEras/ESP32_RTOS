@@ -53,6 +53,7 @@ void producer(void *parameters)
     xSemaphoreGive(sem_filled);
   }
 
+  Serial.println("Producer gorevi siliniyor...");
   // Kendi kendini sil
   vTaskDelete(NULL);
 }
@@ -74,6 +75,7 @@ void consumer(void *parameters)
     xSemaphoreTake(mutex, portMAX_DELAY);
     deger = buf[tail];
     tail = (tail + 1) % BUF_BOYUT;
+    Serial.print("Consumer :");
     Serial.println(deger);
     xSemaphoreGive(mutex);// semaforu serbest bırak
 
@@ -104,6 +106,8 @@ void setup()
   // Producer görevini başlat (her birinin argüman okumasını beklenir)
   for (int i = 0; i < num_prod_gorevler; i++) 
   {
+    Serial.print("olusturulan producer gorevi: ");
+    Serial.println(i);
     sprintf(task_name, "Producer %i", i);
     xTaskCreatePinnedToCore(producer,
                             task_name,
@@ -118,6 +122,8 @@ void setup()
   // consumer görevini başlat
   for (int i = 0; i < num_cons_gorevler; i++) 
   {
+    Serial.print("olusturulan consumer gorevi: ");
+    Serial.println(i);
     sprintf(task_name, "Consumer %i", i);
     xTaskCreatePinnedToCore(consumer,
                             task_name,
